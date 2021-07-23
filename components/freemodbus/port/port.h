@@ -38,7 +38,7 @@
 #define MB_SERIAL_BUF_SIZE          (CONFIG_FMB_SERIAL_BUF_SIZE)
 
 // common definitions for serial port implementations
-#define MB_SERIAL_TX_TOUT_MS        (100)
+#define MB_SERIAL_TX_TOUT_MS        (CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND)
 #define MB_SERIAL_TX_TOUT_TICKS     pdMS_TO_TICKS(MB_SERIAL_TX_TOUT_MS) // timeout for transmission
 #define MB_SERIAL_RX_TOUT_MS        (1)
 #define MB_SERIAL_RX_TOUT_TICKS     pdMS_TO_TICKS(MB_SERIAL_RX_TOUT_MS) // timeout for receive
@@ -77,15 +77,18 @@ typedef long    LONG;
 void vMBPortEnterCritical(void);
 void vMBPortExitCritical(void);
 
-#define ENTER_CRITICAL_SECTION( ) { ESP_LOGD(MB_PORT_TAG,"%s: Port enter critical.", __func__); \
+#define ENTER_CRITICAL_SECTION( ) { ESP_EARLY_LOGD(MB_PORT_TAG,"%s: Port enter critical.", __func__); \
                                     vMBPortEnterCritical(); }
 
 #define EXIT_CRITICAL_SECTION( )  { vMBPortExitCritical(); \
-                                    ESP_LOGD(MB_PORT_TAG,"%s: Port exit critical", __func__); }
+                                    ESP_EARLY_LOGD(MB_PORT_TAG,"%s: Port exit critical", __func__); }
 
 #define MB_PORT_CHECK_EVENT( event, mask ) ( event & mask )
 #define MB_PORT_CLEAR_EVENT( event, mask ) do { event &= ~mask; } while(0)
 
+
+void vMBPortSetMode( UCHAR ucMode );
+UCHAR ucMBPortGetMode( void );
 #ifdef __cplusplus
 PR_END_EXTERN_C
 #endif /* __cplusplus */

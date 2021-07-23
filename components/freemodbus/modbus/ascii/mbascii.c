@@ -44,7 +44,7 @@
 #include "mbcrc.h"
 #include "mbport.h"
 
-#if MB_SLAVE_ASCII_ENABLED > 0
+#if MB_SLAVE_ASCII_ENABLED
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -393,7 +393,8 @@ xMBASCIITransmitFSM( void )
     return xNeedPoll;
 }
 
-BOOL MB_PORT_ISR_ATTR xMBASCIITimerT1SExpired( void )
+BOOL MB_PORT_ISR_ATTR 
+xMBASCIITimerT1SExpired( void )
 {
     switch ( eRcvState )
     {

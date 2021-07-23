@@ -14,8 +14,8 @@ menu "Modbus configuration"
 
     config FMB_MASTER_TIMEOUT_MS_RESPOND
         int "Slave respond timeout (Milliseconds)"
-        default 150
-        range 50 400
+        default 400
+        range 50 1000
         help
                 If master sends a frame which is not broadcast, it has to wait sometime for slave response.
                 if slave is not respond in this time, the master will process timeout error.
@@ -72,7 +72,7 @@ menu "Modbus configuration"
 
     config FMB_SERIAL_TASK_PRIO
         int "Modbus serial task priority"
-        range 3 10
+        range 3 23
         default 10
         help
                 Modbus UART driver event task priority.
@@ -130,7 +130,7 @@ menu "Modbus configuration"
 
     config FMB_TIMER_PORT_ENABLED
         bool "Modbus slave stack use timer for 3.5T symbol time measurement"
-        default y
+        default n
         help
                 If this option is set the Modbus stack uses timer for T3.5 time measurement.
                 Else the internal UART TOUT timeout is used for 3.5T symbol time measurement.

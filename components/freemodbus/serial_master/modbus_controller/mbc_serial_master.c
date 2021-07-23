@@ -23,10 +23,10 @@
 #include "freertos/task.h"          // for task api access
 #include "freertos/event_groups.h"  // for event groups
 #include "freertos/queue.h"         // for queue api access
-#include "mb_m.h"                   // for modbus stack master types definition
+#include "sdkconfig.h"              // for KConfig values
 #include "port.h"                   // for port callback functions
 #include "mbutils.h"                // for mbutils functions definition for stack callback
-#include "sdkconfig.h"              // for KConfig values
+#include "mb_m.h"                   // for modbus stack master types definition
 #include "esp_modbus_common.h"      // for common types
 #include "esp_modbus_master.h"      // for public master types
 #include "mbc_master.h"             // for private master types
@@ -36,7 +36,7 @@
 extern BOOL xMBMasterPortSerialTxPoll(void);
 
 /*-----------------------Master mode use these variables----------------------*/
-#define MB_RESPONSE_TICS pdMS_TO_TICKS(CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND + 10)
+#define MB_RESPONSE_TICS pdMS_TO_TICKS(CONFIG_FMB_MASTER_TIMEOUT_MS_RESPOND)
 
 
 static mb_master_interface_t* mbm_interface_ptr = NULL; //&default_interface_inst;
@@ -101,7 +101,7 @@ static esp_err_t mbc_serial_master_start(void)
     const mb_communication_info_t* comm_info = (mb_communication_info_t*)&mbm_opts->mbm_comm;
 
     // Initialize Modbus stack using mbcontroller parameters
-    status = eMBMasterInit((eMBMode)comm_info->mode, (UCHAR)comm_info->port,
+    status = eMBMasterSerialInit((eMBMode)comm_info->mode, (UCHAR)comm_info->port,
                             (ULONG)comm_info->baudrate, (eMBParity)comm_info->parity);
     MB_MASTER_CHECK((status == MB_ENOERR), ESP_ERR_INVALID_STATE,
             "mb stack initialization failure, eMBInit() returns (0x%x).", status);
@@ -138,6 +138,7 @@ static esp_err_t mbc_serial_master_destroy(void)
     MB_MASTER_CHECK((mb_error == MB_ENOERR), ESP_ERR_INVALID_STATE,
             "mb stack close failure returned (0x%x).", (uint32_t)mb_error);
     free(mbm_interface_ptr); // free the memory allocated for options
+    vMBPortSetMode((UCHAR)MB_PORT_INACTIVE);
     mbm_interface_ptr = NULL;
     return ESP_OK;
 }
@@ -361,7 +362,7 @@ static esp_err_t mbc_serial_master_set_request(char* name, mb_param_mode_t mode,
             continue; // The length of strings is different then check next record in the table
         }
         // Compare the name of parameter with parameter key from table
-        uint8_t comp_result = memcmp((const char*)name, (const char*)reg_ptr->param_key, (size_t)param_key_len);
+        int comp_result = memcmp((const void*)name, (const void*)reg_ptr->param_key, (size_t)param_key_len);
         if (comp_result == 0) {
             // The correct line is found in the table and reg_ptr points to the found parameter description
             request->slave_addr = reg_ptr->mb_slave_addr;
@@ -657,6 +658,7 @@ esp_err_t mbc_serial_master_create(mb_port_type_t port_type, void** handler)
     mb_master_options_t* mbm_opts = &mbm_interface_ptr->opts;
     mbm_opts->port_type = MB_PORT_SERIAL_MASTER;
 
+    vMBPortSetMode((UCHAR)MB_PORT_SERIAL_MASTER);
     mbm_opts->mbm_comm.mode = MB_MODE_RTU;
     mbm_opts->mbm_comm.port = MB_UART_PORT;
     mbm_opts->mbm_comm.baudrate = MB_DEVICE_SPEED;
